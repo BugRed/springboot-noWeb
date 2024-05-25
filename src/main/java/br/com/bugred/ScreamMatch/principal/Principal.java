@@ -1,18 +1,12 @@
 package br.com.bugred.ScreamMatch.principal;
 
-import br.com.bugred.ScreamMatch.model.DadosEpisodio;
 import br.com.bugred.ScreamMatch.model.DadosSerie;
 import br.com.bugred.ScreamMatch.model.DadosTemporada;
 import br.com.bugred.ScreamMatch.model.Episodio;
 import br.com.bugred.ScreamMatch.service.ConsumoApi;
 import br.com.bugred.ScreamMatch.service.ConverterDados;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Principal {
@@ -39,30 +33,43 @@ public class Principal {
 
         listaTemporadas.forEach(System.out::println);
 
-        listaTemporadas.forEach(t -> t.episodios().forEach(e -> System.out.println(e.titulo())));
-
-
-        List<DadosEpisodio> dadosEpisodios = listaTemporadas.stream()
-                .flatMap(t -> t.episodios().stream())
-                .collect(Collectors.toList());
-
-        System.out.println("\nTop 5 episodios");
-        dadosEpisodios.stream()
-                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
-                .peek(e-> System.out.println("Primeiro filtro(N/A): " + e))
-                .sorted(Comparator.comparing(DadosEpisodio::avaliacao).reversed())
-                .peek(e-> System.out.println("Ordenação: " + e))
-                .limit(5)
-                .peek(e-> System.out.println("Limit: " + e))
-                .forEach(System.out::println);
-
-//        List<Episodio> listEpisodios = listaTemporadas.stream()
-//                .flatMap(t -> t.episodios().stream()
-//                        .map(d -> new Episodio(t.numero(), d))
-//                ).collect(Collectors.toList());
+//        listaTemporadas.forEach(t -> t.episodios().forEach(e -> System.out.println(e.titulo())));
 //
+//
+//        List<DadosEpisodio> dadosEpisodios = listaTemporadas.stream()
+//                .flatMap(t -> t.episodios().stream())
+//                .collect(Collectors.toList());
+
+//        System.out.println("\nTop 5 episodios");
+//        dadosEpisodios.stream()
+//                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
+//                .peek(e-> System.out.println("Primeiro filtro(N/A): " + e))
+//                .sorted(Comparator.comparing(DadosEpisodio::avaliacao).reversed())
+//                .peek(e-> System.out.println("Ordenação: " + e))
+//                .limit(5)
+//                .peek(e-> System.out.println("Limit: " + e))
+//                .forEach(System.out::println);
+
+        List<Episodio> listEpisodios = listaTemporadas.stream()
+                .flatMap(t -> t.episodios().stream()
+                        .map(d -> new Episodio(t.numero(), d))
+                ).collect(Collectors.toList());
+
 //        listEpisodios.forEach(System.out::println);
+//        System.out.println("Digite um trecho do titulo de um episodio: ");
+//        String trechoTitulo = sc.nextLine();
 //
+//        Optional<Episodio> ep = listEpisodios.stream()
+//                .filter(e -> e.getTitulo().toUpperCase().contains(trechoTitulo.toUpperCase()))
+//                .findFirst();
+//
+//        if (ep.isPresent()){
+//            System.out.println("Episódio encontrado!");
+//            System.out.println("Temporada: " + ep.get().getTemporada());
+//        } else {
+//            System.out.println("Episódio não encontrado!");
+//        }
+
 //        System.out.println("A partir de que ano deseja ver os episodios: ");
 //        var ano = sc.nextInt();
 //        sc.nextLine();
@@ -77,5 +84,21 @@ public class Principal {
 //                                " Episódio: " + e.getTitulo() +
 //                                " Data Lançamento: " + e.getDataLancamento().format(formatador)
 //                ));
+
+
+        //Tranformando uma lista de coisas num Map
+        Map<Integer, Double> rankinPorTemporada = listEpisodios.stream()
+                .filter(e -> e.getAvaliacao() > 0.0)
+                .collect(Collectors.groupingBy(Episodio::getTemporada,
+                        Collectors.averagingDouble(Episodio::getAvaliacao)));
+        System.out.println(rankinPorTemporada);
+
+        DoubleSummaryStatistics est = listEpisodios.stream()
+                .filter(e -> e.getAvaliacao() > 0.0)
+                .collect(Collectors.summarizingDouble(Episodio::getAvaliacao));
+        System.out.printf("Média: %.2f\n", est.getAverage());
+        System.out.println("Melhor episódio: " + est.getMax());
+        System.out.println("Pior episódio: " + est.getMin());
+        System.out.println("Quantidade: " + est.getCount());
     }
 }
